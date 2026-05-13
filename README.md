@@ -149,6 +149,90 @@ Avvio Minion:
 flatpak run gg.minion.Minion
 ```
 
+### Installazione Tamriel Trade Centre updater
+
+L'installazione degli addon di gioco resta gestita da Minion. Questo repository non installa Tamriel Trade Centre, HarvestMap o altri addon ESO: prepara solo l'updater dati Linux e i wrapper locali.
+
+L'updater dati serve per sincronizzare Tamriel Trade Centre senza avviare `Client.exe` tramite Wine/Proton.
+
+#### 1. Prerequisiti
+
+Installa le dipendenze base:
+
+    sudo pacman -S --needed curl unzip python tk
+
+Installa poi con Minion almeno:
+
+    Tamriel Trade Centre
+
+HarvestMap, HarvestMap-Data ed ESO-Hub Trading sono opzionali e dipendono dall'uso che vuoi farne.
+
+#### 2. Scaricare e installare l'updater dati
+
+Esegui:
+
+    scripts/setup-ttc-updater.sh
+
+Nel setup verificato, il percorso AddOns è:
+
+    ~/Documenti/Elder Scrolls Online/live/AddOns
+
+Se serve forzarlo:
+
+    scripts/setup-ttc-updater.sh --addon-dir "$HOME/Documenti/Elder Scrolls Online/live/AddOns"
+
+Lo script:
+
+  * scarica lo zip dell'updater da ESOUI;
+  * estrae `Linux_Tamriel_Trade_Center.sh`;
+  * genera il wrapper `~/scripts/games/eso-ttc.sh`;
+  * installa la UI Python `~/scripts/games/eso-ttc-ui.py`;
+  * non usa `--steam`;
+  * non modifica Steam launch options;
+  * non installa addon ESO.
+
+#### 3. Uso da terminale
+
+Aggiornamento singolo EU:
+
+    ~/scripts/games/eso-ttc.sh --eu --once
+
+Loop EU mentre giochi:
+
+    ~/scripts/games/eso-ttc.sh --eu --loop
+
+Server NA:
+
+    ~/scripts/games/eso-ttc.sh --na --once
+
+Stato:
+
+    ~/scripts/games/eso-ttc.sh --status
+
+Log:
+
+    ~/scripts/games/eso-ttc.sh --log
+
+Abilitare TTC in `AddOnSettings.txt`, se l'updater lo vede come disabilitato:
+
+    ~/scripts/games/eso-ttc.sh --enable-ttc
+
+#### 4. UI grafica
+
+Avvia:
+
+    ~/scripts/games/eso-ttc-ui.py
+
+La UI permette di scegliere:
+
+  * server EU/NA;
+  * modalità once/loop.
+
+#### 5. Nota su SavedVariables
+
+Per caricare dati nuovi verso TTC, ESO deve prima scriverli nei SavedVariables. Se hai appena visitato guild trader o generato nuovi dati, fai logout, chiudi ESO o usa `/reloadui` prima di rilanciare l'updater.
+
+
 ## Troubleshooting
 
 ### Timeout del launcher
@@ -330,6 +414,13 @@ Minion:
 ~/.local/share/applications/eso-addon-minion.desktop
 ~/.cache/eso-linux/minion-addon-path.txt
 ```
+
+TTC updater:
+
+    ~/scripts/games/ttc-esoui-updater/Linux_Tamriel_Trade_Center.sh
+    ~/scripts/games/eso-ttc.sh
+    ~/scripts/games/eso-ttc-ui.py
+    ~/Documents/Linux_Tamriel_Trade_Center/
 
 ### Variabili ambiente
 
