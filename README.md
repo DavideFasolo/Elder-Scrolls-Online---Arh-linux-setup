@@ -159,7 +159,7 @@ L'updater dati serve per sincronizzare Tamriel Trade Centre senza avviare `Clien
 
 Installa le dipendenze base:
 
-    sudo pacman -S --needed curl unzip python tk
+    sudo pacman -S --needed curl unzip python python-pip tk
 
 Installa poi con Minion almeno:
 
@@ -186,7 +186,10 @@ Lo script:
   * scarica lo zip dell'updater da ESOUI;
   * estrae `Linux_Tamriel_Trade_Center.sh`;
   * genera il wrapper `~/scripts/games/eso-ttc.sh`;
+  * crea una venv dedicata `~/scripts/games/eso-ttc-ui-venv`;
+  * installa `customtkinter` dentro la venv;
   * installa la UI Python `~/scripts/games/eso-ttc-ui.py`;
+  * crea il launcher UI `~/scripts/games/eso-ttc-ui`;
   * non usa `--steam`;
   * non modifica Steam launch options;
   * non installa addon ESO.
@@ -221,9 +224,9 @@ Abilitare TTC in `AddOnSettings.txt`, se l'updater lo vede come disabilitato:
 
 Avvia:
 
-    ~/scripts/games/eso-ttc-ui.py
+    ~/scripts/games/eso-ttc-ui
 
-La UI permette di scegliere:
+La UI usa CustomTkinter e permette di scegliere:
 
   * server EU/NA;
   * modalità once/loop.
@@ -411,7 +414,7 @@ Log:
 Minion:
 
 ```text
-~/.local/share/applications/eso-addon-minion.desktop
+~/.local/share/applications/eso-minion.desktop
 ~/.cache/eso-linux/minion-addon-path.txt
 ```
 
@@ -420,6 +423,8 @@ TTC updater:
     ~/scripts/games/ttc-esoui-updater/Linux_Tamriel_Trade_Center.sh
     ~/scripts/games/eso-ttc.sh
     ~/scripts/games/eso-ttc-ui.py
+    ~/scripts/games/eso-ttc-ui
+    ~/scripts/games/eso-ttc-ui-venv/
     ~/Documents/Linux_Tamriel_Trade_Center/
 
 ### Variabili ambiente

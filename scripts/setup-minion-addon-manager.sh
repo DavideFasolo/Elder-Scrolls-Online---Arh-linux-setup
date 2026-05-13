@@ -101,11 +101,11 @@ EOF
 
 msg "genero launcher desktop Minion"
 
-cat > "$DESKTOP_DIR/eso-addon-minion.desktop" <<EOF
+cat > "$DESKTOP_DIR/eso-minion.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Name=ESO Addon Minion
-Comment=Gestione AddOns ESO tramite Minion Flatpak
+Name=ESO Minion
+Comment=Gestione addon di Elder Scrolls Online tramite Minion
 Exec=flatpak run $APP_ID
 Icon=$APP_ID
 Terminal=false
@@ -113,14 +113,14 @@ Categories=Game;Utility;
 StartupNotify=true
 EOF
 
-chmod +x "$DESKTOP_DIR/eso-addon-minion.desktop"
+chmod +x "$DESKTOP_DIR/eso-minion.desktop"
 update-desktop-database "$DESKTOP_DIR" >/dev/null 2>&1 || true
 
 msg "setup Minion completato"
 
 cat <<EOF
 Desktop entry creata:
-  ESO Addon Minion
+  ESO Minion
 
 Percorso salvato in:
   $PATH_INFO

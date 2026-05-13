@@ -245,9 +245,16 @@ esac
 ensure_file "$UPDATER"
 ensure_dir "$ADDONS"
 
+# Lo script upstream decide se TTC è abilitato leggendo AddOnSettings.txt.
+# ESO può mostrare l'addon attivo in gioco senza scrivere qui la riga singola,
+# quindi normalizziamo prima dell'esecuzione.
+if [[ -d "$ADDONS/TamrielTradeCentre" ]]; then
+  enable_addon "TamrielTradeCentre" >/dev/null
+fi
+
 CMD=( "$UPDATER" "--$SERVER" "--$MODE" "--addon-dir" "$ADDONS" )
 
-echo "=== ESO TTC updater wrapper ==="
+echo "=== ESO Tamriel Trade Centre updater wrapper ==="
 echo "Server: $SERVER"
 echo "Mode:   $MODE"
 echo "AddOns: $ADDONS"

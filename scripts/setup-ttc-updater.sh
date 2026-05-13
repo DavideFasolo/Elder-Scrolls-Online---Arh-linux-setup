@@ -9,6 +9,8 @@ DESKTOP_DIR="${ESO_DESKTOP_DIR:-$HOME/.local/share/applications}"
 ADDONS_DIR="${ESO_ADDONS_DIR:-$HOME/Documenti/Elder Scrolls Online/live/AddOns}"
 UPDATER_DIR="$SCRIPT_DIR/ttc-esoui-updater"
 UPDATER_SH="$UPDATER_DIR/Linux_Tamriel_Trade_Center.sh"
+UI_VENV="${ESO_TTC_UI_VENV:-$SCRIPT_DIR/eso-ttc-ui-venv}"
+UI_LAUNCHER="$SCRIPT_DIR/eso-ttc-ui"
 UI_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/eso-ttc-ui.py"
 GENERATOR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/generate-ttc-wrapper.sh"
 
@@ -87,7 +89,7 @@ if (( ${#missing_cmds[@]} > 0 )); then
   cat >&2 <<'EOF'
 Installa prima le dipendenze base:
 
-  sudo pacman -S --needed curl unzip python
+  sudo pacman -S --needed curl unzip python python-pip tk
 
 Per la UI grafica serve anche Tkinter:
 
@@ -95,6 +97,16 @@ Per la UI grafica serve anche Tkinter:
 EOF
   exit 1
 fi
+
+python -m venv --help >/dev/null 2>&1 || {
+  cat >&2 <<'EOF'
+Il modulo venv di Python non è disponibile.
+Su Arch/Garuda installa o reinstalla Python e pip:
+
+  sudo pacman -S --needed python python-pip tk
+EOF
+  exit 1
+}
 
 mkdir -p "$SCRIPT_DIR" "$CACHE_DIR" "$DOWNLOAD_DIR" "$UPDATER_DIR"
 
@@ -147,7 +159,7 @@ ZIP_URL="$(
   python - "$HTML" <<'PY'
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import quote, urlsplit, urlunsplit
 import re
 import sys
 
@@ -159,16 +171,22 @@ class Parser(HTMLParser):
         for key, value in attrs:
             if not value:
                 continue
-            value = unquote(value)
+            value = value.replace("&amp;", "&")
             if re.search(r"https://cdn\.esoui\.com/downloads/file3249/.*\.zip", value):
-                matches.append(value.replace("&amp;", "&"))
+                matches.append(value)
 
 Parser().feed(html)
 
 if not matches:
     sys.exit(1)
 
-print(matches[0])
+url = matches[0]
+parts = urlsplit(url)
+
+safe_path = quote(parts.path, safe="/")
+safe_query = quote(parts.query, safe="=&")
+
+print(urlunsplit((parts.scheme, parts.netloc, safe_path, safe_query, parts.fragment)))
 PY
 )" || fail "non riesco a trovare il link zip nella pagina ESOUI"
 
@@ -192,10 +210,24 @@ msg "genero wrapper eso-ttc.sh"
 [[ -x "$GENERATOR" ]] || chmod +x "$GENERATOR"
 "$GENERATOR" --addon-dir "$ADDONS_DIR"
 
-msg "installa client UI Python"
+msg "installa client UI Python CustomTkinter"
 if [[ -f "$UI_SRC" ]]; then
+  msg "creo/aggiorno venv UI"
+  python -m venv "$UI_VENV"
+  "$UI_VENV/bin/python" -m pip install --upgrade pip
+  "$UI_VENV/bin/python" -m pip install --upgrade customtkinter
+
   cp -av "$UI_SRC" "$SCRIPT_DIR/eso-ttc-ui.py"
   chmod +x "$SCRIPT_DIR/eso-ttc-ui.py"
+
+  cat > "$UI_LAUNCHER" <<EOF
+#!/usr/bin/env bash
+set -Eeuo pipefail
+exec "$UI_VENV/bin/python" "$SCRIPT_DIR/eso-ttc-ui.py" "\$@"
+EOF
+  chmod +x "$UI_LAUNCHER"
+
+  echo "Creato: $UI_LAUNCHER"
 else
   echo "ATTENZIONE: UI sorgente non trovata: $UI_SRC"
 fi
@@ -206,9 +238,9 @@ if (( CREATE_DESKTOP == 1 )); then
   cat > "$DESKTOP_DIR/eso-ttc-ui.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Name=ESO TTC Updater
-Comment=Tamriel Trade Centre data updater UI
-Exec=$SCRIPT_DIR/eso-ttc-ui.py
+Name=ESO Tamriel Trade Centre
+Comment=Aggiorna dati Tamriel Trade Centre per ESO
+Exec=$UI_LAUNCHER
 Terminal=false
 Categories=Game;Utility;
 EOF
@@ -228,7 +260,7 @@ Comandi principali:
   $SCRIPT_DIR/eso-ttc.sh --once
   $SCRIPT_DIR/eso-ttc.sh --loop
   $SCRIPT_DIR/eso-ttc.sh --status
-  $SCRIPT_DIR/eso-ttc-ui.py
+  $SCRIPT_DIR/eso-ttc-ui
 
 Nota:
   Non viene usato --steam.
